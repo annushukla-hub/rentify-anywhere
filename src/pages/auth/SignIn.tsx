@@ -1,22 +1,34 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { signIn } from '@/lib/auth';
+import { toast } from 'sonner';
 
 const SignIn = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement authentication
-    console.log('Sign in:', { email, password });
-    navigate('/');
+    setLoading(true);
+    
+    const { data, error } = await signIn(email, password);
+
+    if (error) {
+      toast.error(error.message);
+    } else if (data) {
+      toast.success('Welcome back!');
+      navigate('/dashboard');
+    }
+    setLoading(false);
   };
 
   const handleSocialLogin = (provider: string) => {
     console.log('Social login:', provider);
+    toast.info('Social login coming soon!');
   };
 
   return (
@@ -87,9 +99,10 @@ const SignIn = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-semibold shadow-lg"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 

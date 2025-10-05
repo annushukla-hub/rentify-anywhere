@@ -7,6 +7,7 @@ export type ElectronicsType = 'laptop' | 'camera' | 'phone' | 'console' | 'table
 
 export type RentalCondition = 'new' | 'excellent' | 'good' | 'fair';
 export type RentalDuration = 'hourly' | 'daily' | 'weekly' | 'monthly';
+export type ListingType = 'rent' | 'buy' | 'both';
 
 export interface RentalFeature {
   icon: string;
@@ -19,8 +20,10 @@ export interface RentalItem {
   description: string;
   category: RentalCategory;
   subCategory: PropertyType | VehicleType | EquipmentType | ElectronicsType;
+  listingType: ListingType;
   price: number;
   priceUnit: RentalDuration;
+  buyPrice?: number;
   location: string;
   distance?: number;
   rating: number;

@@ -1,30 +1,55 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Phone } from 'lucide-react';
+import { signUp } from '@/lib/auth';
+import { toast } from 'sonner';
 
 const SignUp = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
+    role: 'renter' as 'owner' | 'renter' | 'both',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
-    // TODO: Implement registration
-    console.log('Sign up:', formData);
-    navigate('/');
+
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await signUp({
+      email: formData.email,
+      password: formData.password,
+      full_name: formData.name,
+      phone: formData.phone || undefined,
+      role: formData.role,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else if (data) {
+      toast.success('Account created successfully!');
+      navigate('/dashboard');
+    }
+    setLoading(false);
   };
 
   const handleSocialSignup = (provider: string) => {
     console.log('Social signup:', provider);
+    toast.info('Social login coming soon!');
   };
 
   return (
@@ -44,7 +69,7 @@ const SignUp = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium mb-2">Full Name</label>
+              <label className="block text-sm font-medium mb-2">Full Name *</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
@@ -60,7 +85,7 @@ const SignUp = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-sm font-medium mb-2">Email *</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
@@ -72,6 +97,64 @@ const SignUp = () => {
                   className="w-full pl-10 pr-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
                 />
               </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Phone (Optional)</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+1 (555) 000-0000"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2">I want to *</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'renter' })}
+                  className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    formData.role === 'renter'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  Rent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'owner' })}
+                  className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    formData.role === 'owner'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  List Items
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: 'both' })}
+                  className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${
+                    formData.role === 'both'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  Both
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Choose if you want to rent items, list your own items, or both
+              </p>
             </div>
 
             {/* Password */}
@@ -131,9 +214,10 @@ const SignUp = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-semibold shadow-lg"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

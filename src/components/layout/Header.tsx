@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Menu, X, Heart, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -52,18 +54,29 @@ export const Header = () => {
             <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
               <Heart className="h-5 w-5" />
             </button>
-            <Link
-              to="/auth/signin"
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/auth/signup"
-              className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary hover:opacity-90 rounded-lg transition-opacity shadow-md"
-            >
-              Sign Up
-            </Link>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary hover:opacity-90 rounded-lg transition-opacity shadow-md"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/auth/signin"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth/signup"
+                  className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary hover:opacity-90 rounded-lg transition-opacity shadow-md"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -94,20 +107,32 @@ export const Header = () => {
                 </Link>
               ))}
               <div className="pt-4 flex flex-col space-y-2">
-                <Link
-                  to="/auth/signin"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-lg transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/auth/signup"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary rounded-lg shadow-md"
-                >
-                  Sign Up
-                </Link>
+                {user ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary rounded-lg shadow-md"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/auth/signin"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-lg transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/auth/signup"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-foreground bg-gradient-primary rounded-lg shadow-md"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>
