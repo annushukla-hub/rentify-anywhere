@@ -14,7 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          listing_id: string
+          notes: string | null
+          renter_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          transaction_type: Database["public"]["Enums"]["listing_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          listing_id: string
+          notes?: string | null
+          renter_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price: number
+          transaction_type: Database["public"]["Enums"]["listing_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          renter_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_price?: number
+          transaction_type?: Database["public"]["Enums"]["listing_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          available: boolean | null
+          buy_price: number | null
+          category: string
+          condition: string
+          created_at: string | null
+          description: string
+          features: Json | null
+          has_delivery: boolean | null
+          has_insurance: boolean | null
+          id: string
+          images: Json | null
+          instant_booking: boolean | null
+          latitude: number | null
+          listing_type: Database["public"]["Enums"]["listing_type"]
+          location: string
+          longitude: number | null
+          owner_id: string
+          rent_price: number | null
+          rent_unit: string | null
+          sub_category: string
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          available?: boolean | null
+          buy_price?: number | null
+          category: string
+          condition: string
+          created_at?: string | null
+          description: string
+          features?: Json | null
+          has_delivery?: boolean | null
+          has_insurance?: boolean | null
+          id?: string
+          images?: Json | null
+          instant_booking?: boolean | null
+          latitude?: number | null
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          location: string
+          longitude?: number | null
+          owner_id: string
+          rent_price?: number | null
+          rent_unit?: string | null
+          sub_category: string
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          available?: boolean | null
+          buy_price?: number | null
+          category?: string
+          condition?: string
+          created_at?: string | null
+          description?: string
+          features?: Json | null
+          has_delivery?: boolean | null
+          has_insurance?: boolean | null
+          id?: string
+          images?: Json | null
+          instant_booking?: boolean | null
+          latitude?: number | null
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          location?: string
+          longitude?: number | null
+          owner_id?: string
+          rent_price?: number | null
+          rent_unit?: string | null
+          sub_category?: string
+          title?: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name: string
+          id: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +237,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      listing_type: "rent" | "buy" | "both"
+      user_role: "owner" | "renter" | "both"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +366,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      listing_type: ["rent", "buy", "both"],
+      user_role: ["owner", "renter", "both"],
+    },
   },
 } as const
