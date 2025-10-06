@@ -1,10 +1,7 @@
 import { RentalItem } from '@/types/rental';
 import { MapPin, Star, Heart, Check } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BookingModal } from './BookingModal';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
 interface RentalCardProps {
   rental: RentalItem;
@@ -12,61 +9,9 @@ interface RentalCardProps {
 }
 
 export const RentalCard = ({ rental, variant = 'grid' }: RentalCardProps) => {
-  const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [transactionType, setTransactionType] = useState<'rent' | 'buy'>('rent');
-
-  useEffect(() => {
-    if (user) {
-      checkFavoriteStatus();
-    }
-  }, [user, rental.id]);
-
-  const checkFavoriteStatus = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('listing_id', rental.id)
-      .single();
-
-    setIsFavorite(!!data);
-  };
-
-  const toggleFavorite = async () => {
-    if (!user) {
-      toast.error('Please sign in to save favorites');
-      return;
-    }
-
-    if (isFavorite) {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('listing_id', rental.id);
-
-      if (!error) {
-        setIsFavorite(false);
-        toast.success('Removed from favorites');
-      }
-    } else {
-      const { error } = await supabase
-        .from('favorites')
-        .insert({
-          user_id: user.id,
-          listing_id: rental.id,
-        });
-
-      if (!error) {
-        setIsFavorite(true);
-        toast.success('Added to favorites');
-      }
-    }
-  };
 
   const handleBookClick = (type: 'rent' | 'buy') => {
     setTransactionType(type);
@@ -84,7 +29,7 @@ export const RentalCard = ({ rental, variant = 'grid' }: RentalCardProps) => {
               className="w-full h-full object-cover rounded-xl"
             />
             <button
-              onClick={toggleFavorite}
+              onClick={() => setIsFavorite(!isFavorite)}
               className="absolute top-3 right-3 p-2 rounded-full bg-background/90 backdrop-blur-sm hover:scale-110 transition-transform"
             >
               <Heart
@@ -205,7 +150,7 @@ export const RentalCard = ({ rental, variant = 'grid' }: RentalCardProps) => {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <button
-            onClick={toggleFavorite}
+            onClick={() => setIsFavorite(!isFavorite)}
             className="absolute top-3 right-3 p-2 rounded-full bg-background/90 backdrop-blur-sm hover:scale-110 transition-transform"
           >
             <Heart
