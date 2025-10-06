@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RentalItem } from '@/types/rental';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Calendar, DollarSign } from 'lucide-react';
@@ -63,12 +64,27 @@ export const BookingModal = ({ rental, isOpen, onClose, transactionType }: Booki
 
     setLoading(true);
 
-    // TODO: Implement booking logic with Supabase
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.from('bookings').insert({
+        listing_id: rental.id,
+        renter_id: user.id,
+        transaction_type: transactionType,
+        start_date: transactionType === 'rent' ? startDate : new Date().toISOString(),
+        end_date: transactionType === 'rent' ? endDate : null,
+        total_price: calculateTotal(),
+        notes: notes || null,
+      });
+
+      if (error) throw error;
+
       toast.success(transactionType === 'buy' ? 'Purchase initiated!' : 'Booking request sent!');
-      setLoading(false);
       onClose();
-    }, 1000);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast.error('Failed to create booking. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
