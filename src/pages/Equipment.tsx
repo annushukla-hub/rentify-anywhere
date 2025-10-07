@@ -4,7 +4,11 @@ import { mockRentals } from '@/mocks/rentals';
 import { Wrench } from 'lucide-react';
 
 const Equipment = () => {
-  const equipment = mockRentals.filter(rental => rental.category === 'equipment');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const allEquipment = mockRentals.filter(rental => rental.category === 'equipment');
+  const equipment = selectedType === 'all' 
+    ? allEquipment 
+    : allEquipment.filter(rental => rental.subCategory === selectedType.toLowerCase());
 
   return (
     <div className="min-h-screen py-8">
@@ -22,12 +26,24 @@ const Equipment = () => {
 
         {/* Equipment Types */}
         <div className="mb-8 flex flex-wrap gap-3 justify-center">
-          {['All', 'Construction', 'Photography', 'Audio/Video', 'Sports', 'Party'].map((type) => (
+          {[
+            { label: 'All', value: 'all' },
+            { label: 'Construction', value: 'construction' },
+            { label: 'Photography', value: 'photography' },
+            { label: 'Audio/Video', value: 'audio' },
+            { label: 'Sports', value: 'sports' },
+            { label: 'Party', value: 'party' }
+          ].map((type) => (
             <button
-              key={type}
-              className="px-5 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium"
+              key={type.value}
+              onClick={() => setSelectedType(type.value)}
+              className={`px-5 py-2 rounded-full transition-colors text-sm font-medium ${
+                selectedType === type.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-primary hover:text-primary-foreground'
+              }`}
             >
-              {type}
+              {type.label}
             </button>
           ))}
         </div>
