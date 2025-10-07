@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { RentalCard } from '@/components/feature/RentalCard';
 import { mockRentals } from '@/mocks/rentals';
-import { Home } from 'lucide-react';
-import { PropertyType } from '@/types/rental';
+import { Home, Building2, Hotel } from 'lucide-react';
 
 const Properties = () => {
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const allProperties = mockRentals.filter(rental => rental.category === 'property');
-  const properties = selectedType === 'all' 
-    ? allProperties 
-    : allProperties.filter(rental => rental.subCategory === selectedType.toLowerCase());
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const properties = mockRentals.filter(rental => rental.category === 'property');
 
   return (
     <div className="min-h-screen py-8">
@@ -30,12 +26,7 @@ const Properties = () => {
           {['All', 'Apartment', 'House', 'Condo', 'Studio', 'Villa'].map((type) => (
             <button
               key={type}
-              onClick={() => setSelectedType(type.toLowerCase())}
-              className={`px-5 py-2 rounded-full transition-colors text-sm font-medium ${
-                selectedType === type.toLowerCase()
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted hover:bg-primary hover:text-primary-foreground'
-              }`}
+              className="px-5 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium"
             >
               {type}
             </button>

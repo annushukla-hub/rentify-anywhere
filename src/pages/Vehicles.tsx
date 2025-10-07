@@ -4,11 +4,7 @@ import { mockRentals } from '@/mocks/rentals';
 import { Car } from 'lucide-react';
 
 const Vehicles = () => {
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const allVehicles = mockRentals.filter(rental => rental.category === 'vehicle');
-  const vehicles = selectedType === 'all' 
-    ? allVehicles 
-    : allVehicles.filter(rental => rental.subCategory === selectedType.toLowerCase());
+  const vehicles = mockRentals.filter(rental => rental.category === 'vehicle');
 
   return (
     <div className="min-h-screen py-8">
@@ -29,12 +25,7 @@ const Vehicles = () => {
           {['All', 'Car', 'SUV', 'Motorcycle', 'Truck', 'Luxury'].map((type) => (
             <button
               key={type}
-              onClick={() => setSelectedType(type.toLowerCase())}
-              className={`px-5 py-2 rounded-full transition-colors text-sm font-medium ${
-                selectedType === type.toLowerCase()
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted hover:bg-primary hover:text-primary-foreground'
-              }`}
+              className="px-5 py-2 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium"
             >
               {type}
             </button>

@@ -1,47 +1,103 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RentalCard } from '@/components/feature/RentalCard';
-import { mockRentals, sortOptions } from '@/mocks/rentals';
-import { RentalItem, RentalCategory } from '@/types/rental';
-import { Search, SlidersHorizontal, Grid3x3, List, MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { RentalItem, RentalCategory, ListingType } from '@/types/rental';
+import { Search, Grid3x3, List, MapPin } from 'lucide-react';
 
 const Browse = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('featured');
-  const [filteredRentals, setFilteredRentals] = useState<RentalItem[]>(mockRentals);
+  const [listings, setListings] = useState<RentalItem[]>([]);
+  const [filteredRentals, setFilteredRentals] = useState<RentalItem[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('location') || '');
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = [
-    { value: 'all', label: 'All Categories', count: mockRentals.length },
-    { value: 'property', label: 'Properties', count: mockRentals.filter(r => r.category === 'property').length },
-    { value: 'vehicle', label: 'Vehicles', count: mockRentals.filter(r => r.category === 'vehicle').length },
-    { value: 'equipment', label: 'Equipment', count: mockRentals.filter(r => r.category === 'equipment').length },
-    { value: 'electronics', label: 'Electronics', count: mockRentals.filter(r => r.category === 'electronics').length },
+  const sortOptions = [
+    { value: 'featured', label: 'Featured' },
+    { value: 'price-low', label: 'Price: Low to High' },
+    { value: 'price-high', label: 'Price: High to Low' },
+    { value: 'newest', label: 'Newest First' },
   ];
 
   useEffect(() => {
-    let results = [...mockRentals];
+    loadListings();
+  }, []);
+
+  const loadListings = async () => {
+    const { data, error } = await supabase
+      .from('listings')
+      .select(`
+        *,
+        profiles:owner_id (
+          full_name,
+          avatar_url,
+          verified
+        )
+      `)
+      .eq('available', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading listings:', error);
+      setLoading(false);
+      return;
+    }
+
+    const transformedListings: RentalItem[] = (data || []).map((listing: any) => ({
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      category: listing.category as RentalCategory,
+      subCategory: listing.sub_category,
+      location: listing.location,
+      price: listing.rent_price || listing.buy_price || 0,
+      priceUnit: listing.rent_unit as any || 'daily',
+      image: listing.images?.[0] || '/placeholder.svg',
+      rating: 4.5,
+      reviewCount: 0,
+      condition: listing.condition as any,
+      features: Array.isArray(listing.features) ? listing.features : [],
+      hasDelivery: listing.has_delivery || false,
+      hasInsurance: listing.has_insurance || false,
+      instantBooking: listing.instant_booking || false,
+      listingType: listing.listing_type as ListingType,
+      buyPrice: listing.buy_price || undefined,
+      owner: {
+        name: listing.profiles?.full_name || 'Unknown',
+        avatar: listing.profiles?.avatar_url || '/placeholder.svg',
+        verified: listing.profiles?.verified || false,
+      },
+    }));
+
+    setListings(transformedListings);
+    setLoading(false);
+  };
+
+  const categories = [
+    { value: 'all', label: 'All Categories', count: listings.length },
+    { value: 'property', label: 'Properties', count: listings.filter(r => r.category === 'property').length },
+    { value: 'vehicle', label: 'Vehicles', count: listings.filter(r => r.category === 'vehicle').length },
+    { value: 'equipment', label: 'Equipment', count: listings.filter(r => r.category === 'equipment').length },
+  ];
+
+  useEffect(() => {
+    let results = [...listings];
 
     // Filter by category
     if (selectedCategory && selectedCategory !== 'all') {
       results = results.filter(rental => rental.category === selectedCategory);
     }
 
-    // Filter by search query (location)
+    // Filter by search query
     if (searchQuery) {
       results = results.filter(rental =>
         rental.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rental.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
-    // Filter by price range
-    results = results.filter(rental =>
-      rental.price >= priceRange[0] && rental.price <= priceRange[1]
-    );
 
     // Sort results
     switch (sortBy) {
@@ -51,18 +107,23 @@ const Browse = () => {
       case 'price-high':
         results.sort((a, b) => b.price - a.price);
         break;
-      case 'rating':
-        results.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'distance':
-        results.sort((a, b) => (a.distance || 999) - (b.distance || 999));
+      case 'newest':
+        results.sort((a, b) => b.id.localeCompare(a.id));
         break;
       default:
         break;
     }
 
     setFilteredRentals(results);
-  }, [selectedCategory, searchQuery, priceRange, sortBy]);
+  }, [listings, selectedCategory, searchQuery, sortBy]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8">
@@ -171,7 +232,6 @@ const Browse = () => {
               onClick={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
-                setPriceRange([0, 500]);
               }}
               className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary-hover transition-colors"
             >
